@@ -1,0 +1,31 @@
+version: '3.8'
+services:
+ mysqlserver:
+    image: mysql:8.0.34
+    ports:
+      - "3307:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_USER=admin
+      - MYSQL_PASSWORD=root
+      - MYSQL_DATABASE=employeedata
+    healthcheck:
+      test: ["CMD-SHELL", "/usr/bin/mysql --user=admin --password=root --execute \"SHOW DATABASES;\""]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+
+ app:
+   image: java_demo_rest:0.0.1
+   ports:
+     - "8080:8080"
+   environment:
+     - spring.datasource.url=jdbc:mysql://mysqlserver:3306/employeedata?autoreconnect=true&createDatabaseIfNotExist=true
+     - spring.datasource.username=admin
+     - spring.datasource.password=root
+     - spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+     - spring.jpa.properties.dialect=org.hibernate.dialect.MySQL8Dialect
+     - spring.jpa.hibernate.ddl-auto=update
+   depends_on: 
+     mysqlserver:
+      condition: service_healthy
